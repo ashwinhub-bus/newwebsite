@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dodge the Block - Auto Rickshaw Edition</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    h1 {
+      margin-top: 20px;
+    }
+
+    .game-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 10px;
+    }
+
+    .ad-container {
+      width: 160px;
+      height: 600px;
+      background-color: #e0e0e0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 14px;
+      text-align: center;
+      padding: 10px;
+    }
+
+    canvas {
+      border: 3px solid black;
+      background: url('https://i.imgur.com/6L4zx7I.jpg') no-repeat center center;
+      background-size: cover;
+    }
+
+    .instructions {
+      margin-top: 15px;
+      font-weight: bold;
+      font-size: 16px;
+    }
+
+    .score {
+      font-size: 20px;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Dodge the Block - Auto Rickshaw Edition</h1>
+
+  <div class="score" id="score">Score: 0</div>
+
+  <div class="game-container">
+    <!-- Left Ad -->
+    <div class="ad-container">
+      Amazon Ad<br>
+      <!-- Replace below with your ad code -->
+      <script>/* YOUR_AMAZON_AD_CODE_HERE */</script>
+    </div>
+
+    <!-- Game -->
+    <canvas id="gameCanvas" width="400" height="600"></canvas>
+
+    <!-- Right Ad -->
+    <div class="ad-container">
+      Amazon Ad<br>
+      <!-- Replace below with your ad code -->
+      <script>/* YOUR_AMAZON_AD_CODE_HERE */</script>
+    </div>
+  </div>
+
+  <div class="instructions">
+    Use Left and Right Arrow Keys to move the auto-rickshaw. Avoid the obstacles!
+  </div>
+
+  <!-- Sound Effects -->
+  <audio id="bgSound" src="https://www.soundjay.com/transport/sounds/auto-rickshaw-1.mp3" loop></audio>
+  <audio id="crashSound" src="https://www.soundjay.com/transport/sounds/car-crash-1.mp3"></audio>
+
+  <script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+    const scoreDisplay = document.getElementById("score");
+    const bgSound = document.getElementById("bgSound");
+    const crashSound = document.getElementById("crashSound");
+
+    // Auto-rickshaw image
+    const rickshawImg = new Image();
+    rickshawImg.src = "https://i.imgur.com/qbD6N2t.png";
+
+    const rickshaw = {
+      x: 170,
+      y: 500,
+      width: 60,
+      height: 80,
+      speed: 6
+    };
+
+    let obstacles = [];
+    let gameRunning = true;
+    let score = 0;
+
+    function createObstacle() {
+      const obstacle = {
+        x: Math.random() * (canvas.width - 50),
+        y: 0,
+        width: 50,
+        height: 50,
+        speed: 3 + Math.random() * 3
+      };
+      obstacles.push(obstacle);
+    }
+
+    function moveRickshaw(event) {
+      if (!gameRunning) return;
+
+      if (event.key === "ArrowLeft" && rickshaw.x > 0) {
+        rickshaw.x -= rickshaw.speed;
+      } else if (event.key === "ArrowRight" && rickshaw.x < canvas.width - rickshaw.width) {
+        rickshaw.x += rickshaw.speed;
+      }
+    }
+
+    function updateGame() {
+      if (!gameRunning) return;
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(rickshawImg, rickshaw.x, rickshaw.y, rickshaw.width, rickshaw.height);
+
+      for (let i = 0; i < obstacles.length; i++) {
+        let obs = obstacles[i];
+        obs.y += obs.speed;
+        ctx.fillStyle = "#e74c3c";
+        ctx.fillRect(obs.x, obs.y, obs.width, obs.height);
+
+        // Collision Detection
+        if (
+          obs.y + obs.height > rickshaw.y &&
+          obs.x < rickshaw.x + rickshaw.width &&
+          obs.x + obs.width > rickshaw.x
+        ) {
+          gameRunning = false;
+          crashSound.play();
+          bgSound.pause();
+          alert("Game Over! Your score: " + score);
+          return;
+        }
+      }
+
+      // Remove off-screen obstacles
+      obstacles = obstacles.filter(obs => obs.y < canvas.height);
+
+      // Update score
+      score++;
+      scoreDisplay.innerText = `Score: ${score}`;
+
+      requestAnimationFrame(updateGame);
+    }
+
+    document.addEventListener("keydown", moveRickshaw);
+
+    // Start game
+    setInterval(() => {
+      if (gameRunning) createObstacle();
+    }, 1200);
+
+    // Start background sound when player interacts
+    window.addEventListener('keydown', () => {
+      if (bgSound.paused) {
+        bgSound.volume = 0.3;
+        bgSound.play();
+      }
+    });
+
+    updateGame();
+  </script>
+</body>
+</html>
