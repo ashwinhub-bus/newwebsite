@@ -39,8 +39,7 @@
 
     canvas {
       border: 3px solid black;
-      background: url('https://i.imgur.com/6L4zx7I.jpg') no-repeat center center;
-      background-size: cover;
+      display: block;
     }
 
     .instructions {
@@ -58,14 +57,12 @@
 <body>
 
   <h1>Dodge the Block - Auto Rickshaw Edition</h1>
-
   <div class="score" id="score">Score: 0</div>
 
   <div class="game-container">
     <!-- Left Ad -->
     <div class="ad-container">
       Amazon Ad<br>
-      <!-- Replace below with your ad code -->
       <script>/* YOUR_AMAZON_AD_CODE_HERE */</script>
     </div>
 
@@ -75,7 +72,6 @@
     <!-- Right Ad -->
     <div class="ad-container">
       Amazon Ad<br>
-      <!-- Replace below with your ad code -->
       <script>/* YOUR_AMAZON_AD_CODE_HERE */</script>
     </div>
   </div>
@@ -95,9 +91,22 @@
     const bgSound = document.getElementById("bgSound");
     const crashSound = document.getElementById("crashSound");
 
-    // Auto-rickshaw image
-    const rickshawImg = new Image();
-    rickshawImg.src = "https://i.imgur.com/qbD6N2t.png";
+    let backgroundImage = new Image();
+    let rickshawImage = new Image();
+    let imagesLoaded = 0;
+
+    backgroundImage.src = "https://i.imgur.com/6L4zx7I.jpg";
+    rickshawImage.src = "https://i.imgur.com/qbD6N2t.png";
+
+    backgroundImage.onload = imageLoaded;
+    rickshawImage.onload = imageLoaded;
+
+    function imageLoaded() {
+      imagesLoaded++;
+      if (imagesLoaded === 2) {
+        startGame(); // Start only after both images load
+      }
+    }
 
     const rickshaw = {
       x: 170,
@@ -124,7 +133,6 @@
 
     function moveRickshaw(event) {
       if (!gameRunning) return;
-
       if (event.key === "ArrowLeft" && rickshaw.x > 0) {
         rickshaw.x -= rickshaw.speed;
       } else if (event.key === "ArrowRight" && rickshaw.x < canvas.width - rickshaw.width) {
@@ -135,9 +143,13 @@
     function updateGame() {
       if (!gameRunning) return;
 
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.drawImage(rickshawImg, rickshaw.x, rickshaw.y, rickshaw.width, rickshaw.height);
+      // Draw background
+      ctx.drawImage(backgroundImage, 0, 0, canvas.width, canvas.height);
 
+      // Draw rickshaw
+      ctx.drawImage(rickshawImage, rickshaw.x, rickshaw.y, rickshaw.width, rickshaw.height);
+
+      // Draw and update obstacles
       for (let i = 0; i < obstacles.length; i++) {
         let obs = obstacles[i];
         obs.y += obs.speed;
@@ -168,22 +180,24 @@
       requestAnimationFrame(updateGame);
     }
 
-    document.addEventListener("keydown", moveRickshaw);
+    function startGame() {
+      document.addEventListener("keydown", moveRickshaw);
 
-    // Start game
-    setInterval(() => {
-      if (gameRunning) createObstacle();
-    }, 1200);
+      // Generate obstacles every second
+      setInterval(() => {
+        if (gameRunning) createObstacle();
+      }, 1200);
 
-    // Start background sound when player interacts
-    window.addEventListener('keydown', () => {
-      if (bgSound.paused) {
-        bgSound.volume = 0.3;
-        bgSound.play();
-      }
-    });
+      // Start background sound on interaction
+      window.addEventListener('keydown', () => {
+        if (bgSound.paused) {
+          bgSound.volume = 0.3;
+          bgSound.play();
+        }
+      });
 
-    updateGame();
+      updateGame();
+    }
   </script>
 </body>
 </html>
